@@ -3,13 +3,27 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/recommendation_provider.dart';
 import '../widgets/house_card.dart';
 
-class HomeScreen extends ConsumerWidget {
+import '../widgets/preference_filter.dart';
+
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // For demo purposes, we're using userId: 1
-    final recommendations = ref.watch(recommendationsProvider(1));
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  final int userId = 1; // Mock user ID
+  Map<String, dynamic>? _customPrefs;
+
+  @override
+  Widget build(BuildContext context) {
+    // Determine which provider to use
+    final recProvider = _customPrefs == null 
+        ? recommendationsProvider(userId)
+        : adHocRecommendationsProvider(_customPrefs!);
+        
+    final recommendations = ref.watch(recProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -18,19 +32,34 @@ class HomeScreen extends ConsumerWidget {
         foregroundColor: Colors.white,
         actions: [
           IconButton(
+            icon: Icon(_customPrefs == null ? Icons.filter_alt : Icons.filter_alt_off),
+            tooltip: _customPrefs == null ? 'Personalize' : 'Clear Filters',
+            onPressed: () {
+              if (_customPrefs != null) {
+                setState(() {
+                  _customPrefs = null;
+                });
+              } else {
+                _showPreferenceFilter(context);
+              }
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => ref.refresh(recommendationsProvider(1)),
+            onPressed: () => ref.refresh(recProvider),
           ),
         ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.all(16.0),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
             child: Text(
-              'Recommended for You',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              _customPrefs == null 
+                  ? 'Recommended for You' 
+                  : 'Based on Search Filters',
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
           ),
           Expanded(
@@ -50,6 +79,23 @@ class HomeScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showPreferenceFilter(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => PreferenceFilter(
+        onApply: (prefs) {
+          setState(() {
+            _customPrefs = prefs;
+          });
+        },
       ),
     );
   }

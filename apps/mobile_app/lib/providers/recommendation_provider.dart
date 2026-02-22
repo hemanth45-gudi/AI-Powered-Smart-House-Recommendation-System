@@ -9,6 +9,11 @@ final recommendationsProvider = FutureProvider.family<List<House>, int>((ref, us
   return apiService.getRecommendations(userId);
 });
 
+final adHocRecommendationsProvider = FutureProvider.family<List<House>, Map<String, dynamic>>((ref, prefs) async {
+  final apiService = ref.watch(apiServiceProvider);
+  return apiService.getAdHocRecommendations(prefs);
+});
+
 final allHousesProvider = FutureProvider<List<House>>((ref) async {
   final apiService = ref.watch(apiServiceProvider);
   return apiService.getAllHouses();
