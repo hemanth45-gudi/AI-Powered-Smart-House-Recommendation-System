@@ -9,7 +9,7 @@ import random
 router = APIRouter(prefix="/seed", tags=["seed"])
 
 @router.api_route("/", methods=["GET", "POST"])
-def seed_data(clear: bool = True, db: Session = Depends(get_db)):
+def seed_data(clear: bool = False, db: Session = Depends(get_db)):
     """Seeds the database with houses, users, and interactions for testing."""
     # 1. Clear existing (optional)
     if clear:
@@ -19,14 +19,14 @@ def seed_data(clear: bool = True, db: Session = Depends(get_db)):
         db.commit()
 
     # 2. Add Houses
-    locations = ["Downtown", "Suburbs", "Uptown", "Beachfront", "Mountain View"]
+    locations = ["Downtown", "Suburbs", "Uptown", "Beachfront", "Mountain View", "Nellore", "Ongole"]
     houses = []
     # Generate 30 houses as requested
     for i in range(1, 31):
         h = HouseListing(
-            title=f"Premium Property {i}" if i > 20 else f"Modern House {i}",
+            title=f"Premium Property {i}" if i > 25 else f"Modern House {i}",
             description=f"Beautiful home in {random.choice(locations)}",
-            price=random.randint(200000, 2000000), # Broadened range to up to 2M
+            price=random.randint(200000, 6000000), # Broadened range to up to 6M
             location=random.choice(locations),
             bedrooms=random.randint(1, 6),
             bathrooms=random.randint(1, 4),

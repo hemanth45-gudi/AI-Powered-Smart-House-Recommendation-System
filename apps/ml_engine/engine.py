@@ -57,40 +57,32 @@ class Recommender:
                 df_full[col] = 0
         df_full = self._engineer(df_full)
 
-        # --- 2. Apply Filters (Strict -> Relaxed) ---
+        # --- 2. Apply Filters (Strict) ---
         min_price = user_prefs.get('min_price', 0)
         max_price = user_prefs.get('max_price', float('inf'))
         min_beds  = user_prefs.get('min_bedrooms', 0)
         
-        pref_locs = user_prefs.get('preferred_locations')
+        pref_locs = user_prefs.get('preferred_locations', [])
         if not pref_locs:
             single_loc = user_prefs.get('preferred_location')
             pref_locs = [single_loc] if single_loc else []
-        pref_locs_lower = [loc.lower() for loc in pref_locs if loc]
+        
+        pref_locs_lower = [str(loc).lower() for loc in pref_locs if loc]
 
-        # A. Strict Filter
+        # Initialize mask with Price and Bedroom constraints
         mask = (
             (df_full['price'] >= min_price) & 
             (df_full['price'] <= max_price) & 
             (df_full['bedrooms'] >= min_beds)
         )
+        
+        # Apply Location constraint (MUST match one of the preferred locations)
         if pref_locs_lower:
-            loc_mask = df_full['location'].str.lower().apply(lambda x: any(loc in x for loc in pref_locs_lower))
+            loc_mask = df_full['location'].str.lower().apply(lambda x: any(loc in str(x).lower() for loc in pref_locs_lower))
             mask = mask & loc_mask
         
+        # Result MUST satisfy ALL above criteria
         df = df_full[mask].reset_index(drop=True)
-        message = None
-
-        # B. Fallback: Relaxed Filter (Ignore min_price and location if empty)
-        if df.empty:
-            message = "Relaxing constraints: Showing best results (Strict criteria too restrictive for current inventory)."
-            relaxed_mask = (df_full['price'] <= max_price) & (df_full['bedrooms'] >= min_beds)
-            df = df_full[relaxed_mask].reset_index(drop=True)
-        
-        # C. Fallback: All Houses (If still empty, just find most similar)
-        if df.empty:
-            message = "Showing global best matches (Current filters have zero available inventory)."
-            df = df_full.copy()
         
         if df.empty:
             return []
@@ -139,8 +131,6 @@ class Recommender:
         results = top.to_dict(orient='records')
         for res in results:
             res['explanation'] = self._generate_explanation(user_prefs, res)
-            if message:
-                res['fallback_message'] = message
         return results
 
     def _generate_explanation(self, prefs: Dict, house: Dict) -> Dict:
