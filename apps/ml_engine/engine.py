@@ -27,24 +27,22 @@ class Recommender:
             'pref_min_bedrooms': user_prefs.get('min_bedrooms', 2)
         }])
 
-    def recommend(self, user_prefs, house_list):
+    def recommend(self, user_prefs, house_list, interactions=None):
         """
-        Calculates cosine similarity between user preferences and house listings
-        using the standardized data pipeline for feature encoding and scaling.
+        Calculates a hybrid recommendation score based on:
+        1. Content-based similarity (features)
+        2. Collaborative filtering (similar users' behavior)
         """
         if not house_list or not user_prefs:
             return []
 
-        # 1. Prepare DataFrames
+        # 1. Content-Based Scoring (Refined similarity logic)
         df_houses = pd.DataFrame(house_list)
         df_user = self._create_mock_user_df(user_prefs)
 
-        # 2. Run feature engineering (to add price_per_sqft etc)
-        # We simulate the pipeline's feature engineering step
         def engineer(df):
             df['price_per_sqft'] = df['price'] / df['sqft']
             df['bed_bath_ratio'] = df['bedrooms'] / (df['bathrooms'] + 0.1)
-            # Ensure columns exist locally
             if 'popularity_score' not in df.columns:
                 df['popularity_score'] = 0
             return df
@@ -52,7 +50,6 @@ class Recommender:
         df_houses = engineer(df_houses)
         df_user = engineer(df_user)
 
-        # 3. Define the relevant features (matching data_pipeline.py)
         features = [
             'location', 'house_type', 'price', 'bedrooms', 'bathrooms', 'sqft', 
             'year_built', 'has_parking', 'has_pool', 'price_per_sqft', 
@@ -60,9 +57,6 @@ class Recommender:
             'pref_max_price', 'pref_min_bedrooms'
         ]
 
-        # 4. Use the pipeline's preprocessor for consistent encoding/scaling
-        # Note: In a production env, the preprocessor would be fitted on 
-        # the entire historical dataset during a training job.
         from sklearn.compose import ColumnTransformer
         from sklearn.preprocessing import StandardScaler, OneHotEncoder
 
@@ -77,20 +71,51 @@ class Recommender:
                 ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_features)
             ])
 
-        # Combine user and house data to fit the encoder properly (avoiding unknown cat errors)
         combined = pd.concat([df_user[features], df_houses[features]])
         preprocessor.fit(combined)
         
-        # Transform both
         user_transformed = preprocessor.transform(df_user[features])
         houses_transformed = preprocessor.transform(df_houses[features])
 
-        # 5. Calculate Cosine Similarity
-        # user_transformed is (1, N), houses_transformed is (M, N)
-        similarities = cosine_similarity(user_transformed, houses_transformed)[0]
+        content_similarities = cosine_similarity(user_transformed, houses_transformed)[0]
 
-        # 6. Rank and return
-        df_houses['score'] = similarities
+        # 2. Collaborative Filtering Scoring (User-Behavior Similarity)
+        collab_scores = np.zeros(len(df_houses))
+        if interactions:
+            try:
+                df_inter = pd.DataFrame(interactions)
+                # Pivot to create User-Item matrix
+                user_house_matrix = df_inter.pivot_table(index='user_id', columns='house_id', values='interaction_type', aggfunc='count').fillna(0)
+                
+                target_user_id = user_prefs.get('user_id', 1)
+                if target_user_id in user_house_matrix.index:
+                    user_similarities = cosine_similarity(user_house_matrix)
+                    user_idx = user_house_matrix.index.get_loc(target_user_id)
+                    
+                    # Find similar users
+                    similar_users_idx = user_similarities[user_idx].argsort()[::-1][1:6] # Top 5
+                    
+                    # Average interest of similar users in all houses
+                    similar_users_interactions = user_house_matrix.iloc[similar_users_idx].mean(axis=0)
+                    
+                    # Apply these scores to the current house list
+                    for i, house in df_houses.iterrows():
+                        collab_scores[i] = similar_users_interactions.get(house['id'], 0)
+            except Exception as e:
+                print(f"Collab Filtering Error: {e}")
+
+        # 3. Hybridize (Weighted sum: 60% content, 40% collaborative)
+        # Normalize collab scores to [0, 1] for fair weighting
+        if collab_scores.max() > 0:
+            collab_scores = collab_scores / collab_scores.max()
+
+        final_scores = (0.6 * content_similarities) + (0.4 * collab_scores)
+
+        # 4. Rank and return
+        df_houses['score'] = final_scores
+        df_houses['content_match'] = content_similarities
+        df_houses['behavior_match'] = collab_scores
+        
         top_results = df_houses.sort_values(by='score', ascending=False).head(15)
         
         return top_results.to_dict(orient='records')
