@@ -44,12 +44,28 @@ class ApiService {
 
   Future<void> updatePreferences(int userId, Map<String, dynamic> prefs) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/users/$userId/preferences'),
+      Uri.parse('\$baseUrl/users/\$userId/preferences'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode(prefs),
     );
     if (response.statusCode != 200) {
       throw Exception('Failed to update preferences');
+    }
+  }
+
+  Future<void> recordInteraction(int userId, int? houseId, String eventType, [Map<String, dynamic>? metadata]) async {
+    final response = await http.post(
+      Uri.parse('\$baseUrl/interactions/'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'user_id': userId,
+        'house_id': houseId,
+        'event_type': eventType,
+        'metadata_json': metadata,
+      }),
+    );
+    if (response.statusCode != 200) {
+      print('Warning: Failed to record interaction (\$eventType)');
     }
   }
 }

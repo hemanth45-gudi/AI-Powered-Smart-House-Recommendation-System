@@ -1,19 +1,20 @@
-import 'package:flutter/material.dart';
-import '../models/house.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/recommendation_provider.dart';
 
-class HouseCard extends StatelessWidget {
+class HouseCard extends ConsumerWidget {
   final House house;
 
   const HouseCard({super.key, required this.house});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
       onTap: () {
-        // Mocking behavior tracking
-        print('TRACKING EVENT: User viewed house ${house.id} - "${house.title}"');
+        // Record interaction in backend
+        ref.read(apiServiceProvider).recordInteraction(1, house.id, 'click');
+        
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Viewing ${house.title}... (Behavior Tracked)')),
+          SnackBar(content: Text('Viewing ${house.title}... (Click Tracked)')),
         );
       },
       child: Card(

@@ -95,6 +95,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           setState(() {
             _customPrefs = prefs;
           });
+          // Track search event in backend
+          ref.read(apiServiceProvider).recordInteraction(userId, null, 'search', prefs);
         },
       ),
     );
