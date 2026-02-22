@@ -3,96 +3,84 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
 import os
+from .utils import fetch_house_listings, fetch_user_preferences, fetch_user_interactions
 
 class HouseDataPipeline:
     def __init__(self):
-        self.encoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
-        self.scaler = StandardScaler()
+        # We only use features that actually exist in our DB
+        self.numeric_features = ['price', 'bedrooms', 'bathrooms', 'sqft', 'price_per_sqft', 'bed_bath_ratio', 'popularity_score']
+        self.categorical_features = ['location']
         
-    def collect_data(self):
-        """Mock data collection: Load from local CSVs or generate on the fly."""
-        # In a real system, this would fetch from backend_api/database
-        from generate_data import generate_synthetic_data
-        houses, users, interactions = generate_synthetic_data()
-        return houses, users, interactions
-
-    def clean_data(self, df):
-        """Perform basic data cleaning."""
-        # Remove duplicates
-        df = df.drop_duplicates()
-        
-        # Simple imputation for numeric columns if any were missing (synthetic data is clean but good practice)
-        numeric_cols = df.select_dtypes(include=[np.number]).columns
-        df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].median())
-        
-        return df
-
-    def feature_engineering(self, houses, users, interactions):
-        """Create engineered features across all data sources."""
-        # 1. House features
-        houses['price_per_sqft'] = houses['price'] / houses['sqft']
-        houses['bed_bath_ratio'] = houses['bedrooms'] / (houses['bathrooms'] + 0.1)
-        
-        # 2. Aggregating User Interactions
-        interaction_counts = interactions.groupby('house_id').size().reset_index(name='popularity_score')
-        houses = houses.merge(interaction_counts, on='house_id', how='left').fillna({'popularity_score': 0})
-        
-        # 3. Joining with User Preferences (Creating Interaction Pairs)
-        # For simplicity, we create a 'match' dataset where we label if a house follows user prefs
-        merged_data = interactions.merge(houses, on='house_id').merge(users, on='user_id')
-        
-        # Target variable: 1 if user saved, 0 otherwise (for binary classification demo)
-        merged_data['label'] = (merged_data['interaction_type'] == 'save').astype(int)
-        
-        return merged_data
-
     def process(self):
-        """Run the full pipeline."""
-        print("Starting data collection...")
-        houses, users, interactions = self.collect_data()
+        """Run the full pipeline using live data from the backend."""
+        print("Fetching live data from backend...")
+        houses_list = fetch_house_listings()
+        interactions_list = fetch_user_interactions()
         
-        print("Cleaning data...")
-        houses = self.clean_data(houses)
+        if not houses_list:
+            raise ValueError("No houses found in the database. Please seed the data first.")
         
-        print("Engineering features...")
-        data = self.feature_engineering(houses, users, interactions)
+        houses = pd.DataFrame(houses_list)
+        interactions = pd.DataFrame(interactions_list) if interactions_list else pd.DataFrame(columns=['user_id', 'house_id', 'event_type'])
         
-        # Define features for training
-        features = [
-            'location', 'house_type', 'price', 'bedrooms', 'bathrooms', 'sqft', 
-            'year_built', 'has_parking', 'has_pool', 'price_per_sqft', 
-            'bed_bath_ratio', 'popularity_score', 'pref_min_price', 
-            'pref_max_price', 'pref_min_bedrooms'
-        ]
+        print(f"Processing {len(houses)} houses and {len(interactions)} interactions...")
         
-        X = data[features]
+        # 1. Feature Engineering: House Features
+        houses['price_per_sqft'] = houses['price'] / (houses['sqft'].replace(0, 1))
+        houses['bed_bath_ratio'] = houses['bedrooms'] / (houses['bathrooms'].replace(0, 0.1) + 0.1)
+        
+        # 2. Feature Engineering: Popularity Score
+        if not interactions.empty and 'house_id' in interactions.columns:
+            pop_scores = interactions.groupby('house_id').size().reset_index(name='popularity_score')
+            houses = houses.merge(pop_scores, left_on='id', right_on='house_id', how='left').fillna({'popularity_score': 0})
+        else:
+            houses['popularity_score'] = 0
+            
+        # 3. Create Training Dataset (Matches)
+        # For training a classifier, we need some 'positive' interactions (saves)
+        # If no interactions, we can't really 'train' a personalized model correctly, 
+        # but we can create a dummy label for the pipeline to function.
+        if not interactions.empty and 'user_id' in interactions.columns:
+            # Join interactions with houses
+            data = interactions.merge(houses, left_on='house_id', right_on='id')
+            # Label 1 for 'save', 0 for others
+            data['label'] = (data['event_type'] == 'save').astype(int)
+        else:
+            # Fallback: create dummy data if no interactions exist yet
+            data = houses.copy()
+            data['label'] = 0
+            
+        # 4. Final Feature Selection
+        # Note: In a real system we'd also include user profile features here.
+        # For this version, we focus on house features being liked by users.
+        X = data[self.numeric_features + self.categorical_features]
         y = data['label']
         
-        # Preprocessing: Encoding and Scaling
-        numeric_features = ['price', 'bedrooms', 'bathrooms', 'sqft', 'year_built', 
-                            'price_per_sqft', 'bed_bath_ratio', 'popularity_score', 
-                            'pref_min_price', 'pref_max_price', 'pref_min_bedrooms']
-        categorical_features = ['location', 'house_type', 'has_parking', 'has_pool']
-        
+        # 5. Preprocessing
         preprocessor = ColumnTransformer(
             transformers=[
-                ('num', StandardScaler(), numeric_features),
-                ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_features)
+                ('num', StandardScaler(), self.numeric_features),
+                ('cat', OneHotEncoder(handle_unknown='ignore'), self.categorical_features)
             ])
         
-        print("Splitting data and applying transformations...")
+        print("Splitting and transforming data...")
+        if len(X) < 2:
+            # Not enough data to split, just return the same for both
+            X_transformed = preprocessor.fit_transform(X)
+            return X_transformed, X_transformed, y, y
+            
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
         
         X_train_transformed = preprocessor.fit_transform(X_train)
         X_test_transformed = preprocessor.transform(X_test)
         
-        print(f"Pipeline complete. Training set size: {X_train_transformed.shape}")
         return X_train_transformed, X_test_transformed, y_train, y_test
 
 if __name__ == "__main__":
     pipeline = HouseDataPipeline()
-    X_train, X_test, y_train, y_test = pipeline.process()
-    print("Processed Features Sample (First Row):", X_train[0])
+    try:
+        X_train, X_test, y_train, y_test = pipeline.process()
+        print(f"Pipeline complete. Training set shape: {X_train.shape}")
+    except Exception as e:
+        print(f"Error in pipeline: {e}")

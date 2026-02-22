@@ -19,7 +19,7 @@ from sklearn.metrics import (
     precision_score, recall_score, accuracy_score,
     f1_score, classification_report
 )
-from data_pipeline import HouseDataPipeline
+from .data_pipeline import HouseDataPipeline
 
 MODELS_DIR = "models"
 REGISTRY_PATH = os.path.join(MODELS_DIR, "model_registry.json")

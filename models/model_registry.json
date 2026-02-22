@@ -1,0 +1,17 @@
+{
+  "versions": [
+    {
+      "version": "v20260222_184703",
+      "path": "models\\recommender_v20260222_184703.joblib",
+      "trained_at": "2026-02-22T18:47:03.879813Z",
+      "metrics": {
+        "accuracy": 0.6,
+        "precision": 0.3333,
+        "recall": 0.3333,
+        "f1_score": 0.3333
+      },
+      "promoted": true
+    }
+  ],
+  "production": "v20260222_184703"
+}

@@ -4,7 +4,7 @@ from sklearn.preprocessing import StandardScaler
 import requests
 import os
 
-BACKEND_API_URL = os.getenv("BACKEND_API_URL", "http://backend_api:8000")
+BACKEND_API_URL = os.getenv("BACKEND_API_URL", "http://localhost:8000")
 
 def fetch_house_listings():
     """Fetches all house listings from the backend API."""

@@ -17,6 +17,10 @@ def record_interaction(interaction: InteractionCreate, db: Session = Depends(get
     db.refresh(db_interaction)
     return db_interaction
 
+@router.get("/", response_model=list[Interaction])
+def get_all_interactions(skip: int = 0, limit: int = 1000, db: Session = Depends(get_db)):
+    return db.query(UserInteraction).offset(skip).limit(limit).all()
+
 @router.get("/user/{user_id}", response_model=list[Interaction])
 def get_user_interactions(user_id: int, db: Session = Depends(get_db)):
     return db.query(UserInteraction).filter(UserInteraction.user_id == user_id).all()
