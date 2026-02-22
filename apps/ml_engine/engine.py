@@ -49,47 +49,54 @@ class Recommender:
             return []
 
         # --- 1. Prepare house DataFrame ---
-        df = pd.DataFrame(house_list)
+        df_full = pd.DataFrame(house_list)
         # Keep only rows with required columns
         required = ['price', 'bedrooms', 'bathrooms', 'sqft']
         for col in required:
-            if col not in df.columns:
-                df[col] = 0
-        df = self._engineer(df)
+            if col not in df_full.columns:
+                df_full[col] = 0
+        df_full = self._engineer(df_full)
 
-        # --- 2. Apply Strict Filters ---
+        # --- 2. Apply Filters (Strict -> Relaxed) ---
         min_price = user_prefs.get('min_price', 0)
         max_price = user_prefs.get('max_price', float('inf'))
         min_beds  = user_prefs.get('min_bedrooms', 0)
         
-        # Location filtering (support string or list)
         pref_locs = user_prefs.get('preferred_locations')
         if not pref_locs:
             single_loc = user_prefs.get('preferred_location')
             pref_locs = [single_loc] if single_loc else []
-        
-        # Convert to lower for comparison
-        pref_locs = [loc.lower() for loc in pref_locs if loc]
+        pref_locs_lower = [loc.lower() for loc in pref_locs if loc]
 
+        # A. Strict Filter
         mask = (
-            (df['price'] >= min_price) & 
-            (df['price'] <= max_price) & 
-            (df['bedrooms'] >= min_beds)
+            (df_full['price'] >= min_price) & 
+            (df_full['price'] <= max_price) & 
+            (df_full['bedrooms'] >= min_beds)
         )
-        
-        if pref_locs:
-            # House location must contain at least one preferred location
-            loc_mask = df['location'].str.lower().apply(lambda x: any(loc in x for loc in pref_locs))
+        if pref_locs_lower:
+            loc_mask = df_full['location'].str.lower().apply(lambda x: any(loc in x for loc in pref_locs_lower))
             mask = mask & loc_mask
         
-        df = df[mask].reset_index(drop=True)
+        df = df_full[mask].reset_index(drop=True)
+        message = None
+
+        # B. Fallback: Relaxed Filter (Ignore min_price and location if empty)
+        if df.empty:
+            message = "Relaxing constraints: Showing best results (Strict criteria too restrictive for current inventory)."
+            relaxed_mask = (df_full['price'] <= max_price) & (df_full['bedrooms'] >= min_beds)
+            df = df_full[relaxed_mask].reset_index(drop=True)
+        
+        # C. Fallback: All Houses (If still empty, just find most similar)
+        if df.empty:
+            message = "Showing global best matches (Current filters have zero available inventory)."
+            df = df_full.copy()
         
         if df.empty:
             return []
 
         # --- 3. Content-based similarity ---
         df_user = self._user_vector(user_prefs)
-        # Use full numeric feature set
         combined = pd.concat([df_user[NUMERIC_FEATURES], df[NUMERIC_FEATURES]], ignore_index=True)
         self.scaler.fit(combined)
         user_vec    = self.scaler.transform(df_user[NUMERIC_FEATURES])
@@ -120,7 +127,7 @@ class Recommender:
         if collab_scores.max() > 0:
             collab_scores = collab_scores / collab_scores.max()
 
-        # --- 5. Hybrid score (Weighted) ---
+        # --- 5. Hybrid score ---
         final_scores = (0.6 * content_sim) + (0.4 * collab_scores)
 
         df['score']          = np.round(final_scores, 4)
@@ -132,6 +139,8 @@ class Recommender:
         results = top.to_dict(orient='records')
         for res in results:
             res['explanation'] = self._generate_explanation(user_prefs, res)
+            if message:
+                res['fallback_message'] = message
         return results
 
     def _generate_explanation(self, prefs: Dict, house: Dict) -> Dict:
