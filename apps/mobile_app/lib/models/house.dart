@@ -8,6 +8,8 @@ class House {
   final int bathrooms;
   final int sqft;
   final double? score; // Added for ML recommendation ranking
+  final double? contentMatch;
+  final double? behaviorMatch;
   final String? embeddingId;
 
   House({
@@ -20,6 +22,8 @@ class House {
     required this.bathrooms,
     required this.sqft,
     this.score,
+    this.contentMatch,
+    this.behaviorMatch,
     this.embeddingId,
   });
 
@@ -34,6 +38,8 @@ class House {
       bathrooms: json['bathrooms'],
       sqft: json['sqft'],
       score: json['score']?.toDouble(),
+      contentMatch: json['content_match']?.toDouble(),
+      behaviorMatch: json['behavior_match']?.toDouble(),
       embeddingId: json['embedding_id'],
     );
   }
@@ -49,6 +55,8 @@ class House {
       'bathrooms': bathrooms,
       'sqft': sqft,
       'score': score,
+      'content_match': contentMatch,
+      'behavior_match': behaviorMatch,
       'embedding_id': embeddingId,
     };
   }

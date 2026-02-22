@@ -1,0 +1,109 @@
+openapi: 3.0.0
+info:
+  title: Smart House ML Recommendation Engine
+  version: 1.0.0
+  description: REST API for generating personalized house recommendations using a Hybrid (Content + Collaborative) engine.
+
+paths:
+  /:
+    get:
+      summary: Health Check
+      responses:
+        '200':
+          description: Operational status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /recommend/{user_id}:
+    get:
+      summary: Get Profile-Based Recommendations
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of ranked recommendations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecommendationResponse'
+        '404':
+          description: User preferences not found
+
+  /recommend:
+    post:
+      summary: Get Ad-Hoc Recommendations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPreferenceRequest'
+      responses:
+        '200':
+          description: List of ranked recommendations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecommendationResponse'
+
+components:
+  schemas:
+    UserPreferenceRequest:
+      type: object
+      properties:
+        min_price:
+          type: number
+          minimum: 0
+        max_price:
+          type: number
+          minimum: 0
+        preferred_location:
+          type: string
+        min_bedrooms:
+          type: integer
+          minimum: 0
+
+    HouseRecommendation:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        location:
+          type: string
+        price:
+          type: number
+        bedrooms:
+          type: integer
+        bathrooms:
+          type: integer
+        sqft:
+          type: integer
+        score:
+          type: number
+        content_match:
+          type: number
+        behavior_match:
+          type: number
+
+    RecommendationResponse:
+      type: object
+      properties:
+        user_id:
+          type: integer
+        recommendations:
+          type: array
+          items:
+            $ref: '#/components/schemas/HouseRecommendation'
+        engine:
+          type: string

@@ -28,6 +28,20 @@ class ApiService {
     }
   }
 
+  Future<List<House>> getAdHocRecommendations(Map<String, dynamic> prefs) async {
+    final response = await http.post(
+      Uri.parse('$mlBaseUrl/recommend'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(prefs),
+    );
+    if (response.statusCode == 200) {
+      final recommendationResponse = RecommendationResponse.fromJson(json.decode(response.body));
+      return recommendationResponse.recommendations;
+    } else {
+      throw Exception('Failed to load ad-hoc recommendations');
+    }
+  }
+
   Future<void> updatePreferences(int userId, Map<String, dynamic> prefs) async {
     final response = await http.post(
       Uri.parse('$baseUrl/users/$userId/preferences'),
