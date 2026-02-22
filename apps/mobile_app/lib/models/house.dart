@@ -1,3 +1,24 @@
+class Explanation {
+  final String reason;
+  final List<String> topMatches;
+
+  Explanation({required this.reason, required this.topMatches});
+
+  factory Explanation.fromJson(Map<String, dynamic> json) {
+    return Explanation(
+      reason: json['reason'],
+      topMatches: List<String>.from(json['top_matches']),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'reason': reason,
+      'top_matches': topMatches,
+    };
+  }
+}
+
 class House {
   final int id;
   final String title;
@@ -11,6 +32,7 @@ class House {
   final double? contentMatch;
   final double? behaviorMatch;
   final String? embeddingId;
+  final Explanation? explanation;
 
   House({
     required this.id,
@@ -25,6 +47,7 @@ class House {
     this.contentMatch,
     this.behaviorMatch,
     this.embeddingId,
+    this.explanation,
   });
 
   factory House.fromJson(Map<String, dynamic> json) {
@@ -41,6 +64,9 @@ class House {
       contentMatch: json['content_match']?.toDouble(),
       behaviorMatch: json['behavior_match']?.toDouble(),
       embeddingId: json['embedding_id'],
+      explanation: json['explanation'] != null 
+          ? Explanation.fromJson(json['explanation']) 
+          : null,
     );
   }
 
@@ -58,6 +84,7 @@ class House {
       'content_match': contentMatch,
       'behavior_match': behaviorMatch,
       'embedding_id': embeddingId,
+      'explanation': explanation?.toJson(),
     };
   }
 }

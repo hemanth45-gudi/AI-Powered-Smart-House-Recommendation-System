@@ -7,6 +7,10 @@ class UserPreferenceRequest(BaseModel):
     preferred_location: Optional[str] = None
     min_bedrooms: Optional[int] = Field(None, ge=0)
 
+class Explanation(BaseModel):
+    reason: str
+    top_matches: List[str]
+
 class HouseRecommendation(BaseModel):
     id: int
     title: str
@@ -16,6 +20,7 @@ class HouseRecommendation(BaseModel):
     bathrooms: int
     sqft: int
     score: float
+    explanation: Optional[Explanation] = None
     content_match: Optional[float] = None
     behavior_match: Optional[float] = None
 

@@ -1,13 +1,25 @@
 version: '3.8'
 
 services:
-  backend_api:
-    build: 
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=smarthouse
+    ports:
+      - "5432:5432"
+
+  backend:
+    build:
       context: ./apps/backend_api
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://user:pass@db:5432/house_db
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/smarthouse
+      - ML_ENGINE_URL=http://ml_engine:8001
     depends_on:
       - db
 
@@ -15,18 +27,11 @@ services:
     build:
       context: ./apps/ml_engine
     ports:
-      - "8001:8000"
-
-  db:
-    image: postgres:15-alpine
+      - "8001:8001"
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
-      POSTGRES_DB: house_db
-    ports:
-      - "5432:5432"
+      - BACKEND_API_URL=http://backend:8000
+    volumes:
+      - ./apps/ml_engine/models:/app/models
 
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
+volumes:
+  postgres_data:

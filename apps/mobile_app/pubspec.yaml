@@ -12,6 +12,7 @@ dependencies:
   http: ^1.2.0
   riverpod: ^2.4.9
   shared_preferences: ^2.2.2
+  web_socket_channel: ^2.4.4
 
 dev_dependencies:
   flutter_test:

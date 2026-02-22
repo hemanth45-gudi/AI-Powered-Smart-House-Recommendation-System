@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
+from typing import Dict
 from .data_pipeline import HouseDataPipeline
 
 class Recommender:
@@ -118,6 +119,41 @@ class Recommender:
         
         top_results = df_houses.sort_values(by='score', ascending=False).head(15)
         
-        return top_results.to_dict(orient='records')
+        # 5. Add Explanations
+        results = top_results.to_dict(orient='records')
+        for res in results:
+            res['explanation'] = self._generate_explanation(user_prefs, res)
+            
+        return results
+
+    def _generate_explanation(self, prefs: Dict, house: Dict) -> Dict:
+        """
+        Generates a human-readable explanation for why a house was recommended.
+        """
+        top_matches = []
+        
+        # Price Check
+        if "min_price" in prefs and "max_price" in prefs:
+            if prefs["min_price"] <= house["price"] <= prefs["max_price"]:
+                top_matches.append("Fits your budget")
+        
+        # Bedrooms Check
+        if "min_bedrooms" in prefs:
+            if house["bedrooms"] >= prefs["min_bedrooms"]:
+                top_matches.append(f"{house['bedrooms']}+ Bedrooms")
+                
+        # Location Check
+        if "preferred_location" in prefs:
+            if prefs["preferred_location"].lower() in house["location"].lower():
+                top_matches.append("Preferred location")
+
+        reason = "This home fits your search criteria"
+        if top_matches:
+            reason = f"Matches your interest in {', '.join(top_matches[:2])}"
+
+        return {
+            "reason": reason,
+            "top_matches": top_matches
+        }
 
 recommender = Recommender()
