@@ -30,7 +30,7 @@ class House {
   final int sqft;
   final double? score; // Added for ML recommendation ranking
   final double? contentMatch;
-  final double? behaviorMatch;
+  final double? collabMatch;
   final String? embeddingId;
   final Explanation? explanation;
 
@@ -45,7 +45,7 @@ class House {
     required this.sqft,
     this.score,
     this.contentMatch,
-    this.behaviorMatch,
+    this.collabMatch,
     this.embeddingId,
     this.explanation,
   });
@@ -62,7 +62,7 @@ class House {
       sqft: json['sqft'],
       score: json['score']?.toDouble(),
       contentMatch: json['content_match']?.toDouble(),
-      behaviorMatch: json['behavior_match']?.toDouble(),
+      collabMatch: json['collab_match']?.toDouble(),
       embeddingId: json['embedding_id'],
       explanation: json['explanation'] != null 
           ? Explanation.fromJson(json['explanation']) 
@@ -82,7 +82,7 @@ class House {
       'sqft': sqft,
       'score': score,
       'content_match': contentMatch,
-      'behavior_match': behaviorMatch,
+      'collab_match': collabMatch,
       'embedding_id': embeddingId,
       'explanation': explanation?.toJson(),
     };

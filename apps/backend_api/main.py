@@ -5,7 +5,17 @@ from .database import engine, Base
 # Auto-create all tables on startup (SQLite / PostgreSQL)
 Base.metadata.create_all(bind=engine)
 
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI(title="Smart House Recommendation API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(houses.router)
 app.include_router(users.router)

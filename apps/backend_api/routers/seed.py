@@ -8,7 +8,7 @@ import random
 
 router = APIRouter(prefix="/seed", tags=["seed"])
 
-@router.post("/")
+@router.api_route("/", methods=["GET", "POST"])
 def seed_data(db: Session = Depends(get_db)):
     """Seeds the database with houses, users, and interactions for testing."""
     # 1. Clear existing (optional, but good for clean testing)

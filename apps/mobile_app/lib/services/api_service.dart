@@ -18,6 +18,19 @@ class ApiService {
     }
   }
 
+  Future<House> createHouse(Map<String, dynamic> houseData) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/houses/'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(houseData),
+    );
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return House.fromJson(json.decode(response.body));
+    } else {
+      throw Exception('Failed to create house');
+    }
+  }
+
   Future<List<House>> getRecommendations(int userId) async {
     final response = await http.get(Uri.parse('$mlBaseUrl/recommend/$userId'));
     if (response.statusCode == 200) {

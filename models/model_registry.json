@@ -11,7 +11,31 @@
         "f1_score": 0.3333
       },
       "promoted": true
+    },
+    {
+      "version": "v20260222_185610",
+      "path": "models\\recommender_v20260222_185610.joblib",
+      "trained_at": "2026-02-22T18:56:10.972198Z",
+      "metrics": {
+        "accuracy": 0.6,
+        "precision": 0.3333,
+        "recall": 0.3333,
+        "f1_score": 0.3333
+      },
+      "promoted": true
+    },
+    {
+      "version": "v20260222_191452",
+      "path": "models\\recommender_v20260222_191452.joblib",
+      "trained_at": "2026-02-22T19:14:52.099546Z",
+      "metrics": {
+        "accuracy": 0.7,
+        "precision": 0.25,
+        "recall": 1.0,
+        "f1_score": 0.4
+      },
+      "promoted": true
     }
   ],
-  "production": "v20260222_184703"
+  "production": "v20260222_191452"
 }

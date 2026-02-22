@@ -45,7 +45,7 @@ def _run_retrain():
     except Exception as e:
         print(f"[Retrain Error] {e}")
 
-@app.post("/retrain")
+@app.api_route("/retrain", methods=["GET", "POST"])
 async def trigger_retrain(background_tasks: BackgroundTasks):
     """Triggers model retraining asynchronously. Non-blocking."""
     background_tasks.add_task(_run_retrain)
@@ -96,7 +96,7 @@ async def websocket_recommend(websocket: WebSocket, user_id: int):
         print(f"User {user_id} disconnected from real-time feed.")
 
 @app.get("/recommend/{user_id}", response_model=RecommendationResponse)
-async def get_recommendations_by_profile(user_id: int):
+async def get_recommendations_by_profile(user_id: int, limit: int = 5):
     # 1. Fetch user preferences
     prefs = fetch_user_preferences(user_id)
     if not prefs:
@@ -111,7 +111,7 @@ async def get_recommendations_by_profile(user_id: int):
     interactions = fetch_user_interactions()
     
     # 4. Generate hybrid recommendations
-    recommendations = recommender.recommend(prefs, listings, interactions=interactions)
+    recommendations = recommender.recommend(prefs, listings, interactions=interactions, limit=limit)
     
     return {
         "user_id": user_id,
@@ -120,14 +120,14 @@ async def get_recommendations_by_profile(user_id: int):
     }
 
 @app.post("/recommend", response_model=RecommendationResponse)
-async def get_adhoc_recommendations(prefs: UserPreferenceRequest):
+async def get_adhoc_recommendations(prefs: UserPreferenceRequest, limit: int = 5):
     # 1. Fetch all listings
     listings = fetch_house_listings()
     if not listings:
         return {"recommendations": [], "engine": "None", "message": "No listings available"}
         
     # 2. Generate content-based recommendations (no interactions for ad-hoc/guest)
-    recommendations = recommender.recommend(prefs.model_dump(), listings)
+    recommendations = recommender.recommend(prefs.model_dump(), listings, limit=limit)
     
     return {
         "recommendations": recommendations,

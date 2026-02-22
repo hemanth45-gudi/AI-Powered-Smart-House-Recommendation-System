@@ -36,12 +36,12 @@ class Recommender:
         }
         return pd.DataFrame([row])
 
-    def recommend(self, user_prefs: dict, house_list: List[dict], interactions=None) -> List[dict]:
+    def recommend(self, user_prefs: dict, house_list: List[dict], interactions=None, limit: int = 15) -> List[dict]:
         """
         Hybrid recommendation:
         - Content-based: cosine similarity on scaled numeric features
         - Collaborative: interaction-count based scoring
-        Returns top-15 houses sorted by score descending.
+        Returns top-N houses sorted by score descending.
         """
         if not house_list:
             return []
@@ -57,25 +57,44 @@ class Recommender:
                 df[col] = 0
         df = self._engineer(df)
 
-        # --- 2. Content-based similarity ---
+        # --- 2. Apply Strict Filters ---
+        min_price = user_prefs.get('min_price', 0)
+        max_price = user_prefs.get('max_price', float('inf'))
+        min_beds  = user_prefs.get('min_bedrooms', 0)
+        
+        # Location filtering (support string or list)
+        pref_locs = user_prefs.get('preferred_locations')
+        if not pref_locs:
+            single_loc = user_prefs.get('preferred_location')
+            pref_locs = [single_loc] if single_loc else []
+        
+        # Convert to lower for comparison
+        pref_locs = [loc.lower() for loc in pref_locs if loc]
+
+        mask = (
+            (df['price'] >= min_price) & 
+            (df['price'] <= max_price) & 
+            (df['bedrooms'] >= min_beds)
+        )
+        
+        if pref_locs:
+            # House location must contain at least one preferred location
+            loc_mask = df['location'].str.lower().apply(lambda x: any(loc in x for loc in pref_locs))
+            mask = mask & loc_mask
+        
+        df = df[mask].reset_index(drop=True)
+        
+        if df.empty:
+            return []
+
+        # --- 3. Content-based similarity ---
         df_user = self._user_vector(user_prefs)
+        # Use full numeric feature set
         combined = pd.concat([df_user[NUMERIC_FEATURES], df[NUMERIC_FEATURES]], ignore_index=True)
         self.scaler.fit(combined)
         user_vec    = self.scaler.transform(df_user[NUMERIC_FEATURES])
         houses_vec  = self.scaler.transform(df[NUMERIC_FEATURES])
         content_sim = cosine_similarity(user_vec, houses_vec)[0]
-
-        # --- 3. Filter: hard constraints ---
-        min_price = user_prefs.get('min_price', 0)
-        max_price = user_prefs.get('max_price', float('inf'))
-        min_beds  = user_prefs.get('min_bedrooms', 0)
-        pref_loc  = user_prefs.get('preferred_location', '').lower()
-
-        in_budget = ((df['price'] >= min_price) & (df['price'] <= max_price)).astype(float)
-        has_beds  = (df['bedrooms'] >= min_beds).astype(float)
-        loc_match = df['location'].str.lower().str.contains(pref_loc, na=False).astype(float) if pref_loc else pd.Series([0.0] * len(df))
-
-        constraint_bonus = 0.1 * in_budget + 0.1 * has_beds + 0.1 * loc_match
 
         # --- 4. Collaborative filtering ---
         collab_scores = np.zeros(len(df))
@@ -101,14 +120,14 @@ class Recommender:
         if collab_scores.max() > 0:
             collab_scores = collab_scores / collab_scores.max()
 
-        # --- 5. Hybrid score ---
-        final_scores = (0.5 * content_sim) + (0.3 * collab_scores) + (0.2 * constraint_bonus.values)
+        # --- 5. Hybrid score (Weighted) ---
+        final_scores = (0.6 * content_sim) + (0.4 * collab_scores)
 
         df['score']          = np.round(final_scores, 4)
         df['content_match']  = np.round(content_sim, 4)
         df['collab_match']   = np.round(collab_scores, 4)
 
-        top = df.sort_values('score', ascending=False).head(15)
+        top = df.sort_values('score', ascending=False).head(limit)
 
         results = top.to_dict(orient='records')
         for res in results:
