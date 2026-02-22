@@ -68,4 +68,28 @@ class ApiService {
       print('Warning: Failed to record interaction (\$eventType)');
     }
   }
+
+  Future<Map<String, dynamic>> getAnalyticsSummary() async {
+    final response = await http.get(Uri.parse('$baseUrl/analytics/summary'));
+    if (response.statusCode == 200) {
+      return json.decode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception('Failed to load analytics summary');
+  }
+
+  Future<List<dynamic>> getDailyInteractions() async {
+    final response = await http.get(Uri.parse('$baseUrl/analytics/interactions/daily'));
+    if (response.statusCode == 200) {
+      return json.decode(response.body) as List<dynamic>;
+    }
+    throw Exception('Failed to load daily interactions');
+  }
+
+  Future<List<dynamic>> getTopHouses() async {
+    final response = await http.get(Uri.parse('$baseUrl/analytics/top-houses'));
+    if (response.statusCode == 200) {
+      return json.decode(response.body) as List<dynamic>;
+    }
+    throw Exception('Failed to load top houses');
+  }
 }

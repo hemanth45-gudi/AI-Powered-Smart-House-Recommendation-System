@@ -34,3 +34,16 @@ final allHousesProvider = FutureProvider<List<House>>((ref) async {
   final apiService = ref.watch(apiServiceProvider);
   return apiService.getAllHouses();
 });
+
+// Analytics Providers
+final analyticsSummaryProvider = FutureProvider<Map<String, dynamic>>((ref) async {
+  return ref.watch(apiServiceProvider).getAnalyticsSummary();
+});
+
+final analyticsDailyProvider = FutureProvider<List<dynamic>>((ref) async {
+  return ref.watch(apiServiceProvider).getDailyInteractions();
+});
+
+final analyticsTopHousesProvider = FutureProvider<List<dynamic>>((ref) async {
+  return ref.watch(apiServiceProvider).getTopHouses();
+});
