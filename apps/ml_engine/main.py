@@ -1,8 +1,10 @@
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, BackgroundTasks
 from .engine import recommender
 from .utils import fetch_house_listings, fetch_user_preferences, fetch_user_interactions
 from .schemas import UserPreferenceRequest, RecommendationResponse
 import json
+import os
+import joblib
 
 app = FastAPI(title="Smart House ML Recommendation Engine")
 
@@ -28,6 +30,36 @@ manager = ConnectionManager()
 @app.get("/")
 async def root():
     return {"message": "Smart House ML Recommendation Engine is running"}
+
+# --- Model Retraining & Versioning ---
+def _run_retrain():
+    """Runs retraining in the background and hot-swaps the model."""
+    try:
+        from .train import retrain_and_version
+        result = retrain_and_version()
+        if result["promoted"]:
+            new_model = joblib.load(os.path.join("models", "recommender.joblib"))
+            recommender.model = new_model
+            print(f"[Hot-Swap] Model updated to {result['version']}")
+        return result
+    except Exception as e:
+        print(f"[Retrain Error] {e}")
+
+@app.post("/retrain")
+async def trigger_retrain(background_tasks: BackgroundTasks):
+    """Triggers model retraining asynchronously. Non-blocking."""
+    background_tasks.add_task(_run_retrain)
+    return {"status": "Retraining started in background", "message": "Check /model/versions for results."}
+
+@app.get("/model/versions")
+async def get_model_versions():
+    """Returns the model registry with all versions and their metrics."""
+    registry_path = os.path.join("models", "model_registry.json")
+    if not os.path.exists(registry_path):
+        return {"production": None, "versions": []}
+    with open(registry_path, "r") as f:
+        import json as _json
+        return _json.load(f)
 
 @app.websocket("/ws/recommend/{user_id}")
 async def websocket_recommend(websocket: WebSocket, user_id: int):
