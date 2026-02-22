@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  backend_api:
+    build: 
+      context: ./apps/backend_api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://user:pass@db:5432/house_db
+    depends_on:
+      - db
+
+  ml_engine:
+    build:
+      context: ./apps/ml_engine
+    ports:
+      - "8001:8000"
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: house_db
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
