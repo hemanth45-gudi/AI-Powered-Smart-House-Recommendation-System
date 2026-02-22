@@ -4,7 +4,7 @@ from sqlalchemy import func, cast, Date
 from datetime import date, timedelta
 from ..database import get_db
 from ..models.interaction import UserInteraction
-from ..models.house import House
+from ..models.house import HouseListing
 from ..models.user import User
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
@@ -80,7 +80,7 @@ def get_top_houses(db: Session = Depends(get_db)):
     )
     result = []
     for house_id, engagement in top:
-        house = db.query(House).filter(House.id == house_id).first()
+        house = db.query(HouseListing).filter(HouseListing.id == house_id).first()
         if house:
             result.append({
                 "house_id": house_id,
