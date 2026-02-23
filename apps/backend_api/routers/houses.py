@@ -10,13 +10,19 @@ router = APIRouter(
     tags=["houses"]
 )
 
+from sqlalchemy.exc import IntegrityError
+
 @router.post("/", response_model=schemas.HouseListing)
 def create_house(house: schemas.HouseListingCreate, db: Session = Depends(get_db)):
     db_house = models.HouseListing(**house.model_dump())
     db.add(db_house)
-    db.commit()
-    db.refresh(db_house)
-    return db_house
+    try:
+        db.commit()
+        db.refresh(db_house)
+        return db_house
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="A house with this title, location, and price already exists.")
 
 @router.get("/", response_model=List[schemas.HouseListing])
 def read_houses(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):

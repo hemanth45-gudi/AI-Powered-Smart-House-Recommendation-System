@@ -10,30 +10,49 @@ router = APIRouter(prefix="/seed", tags=["seed"])
 
 @router.api_route("/", methods=["GET", "POST"])
 def seed_data(clear: bool = False, db: Session = Depends(get_db)):
-    """Seeds the database with houses, users, and interactions for testing."""
-    # 1. Clear existing (optional)
+    """Seeds the database with houses, users, and interactions for testing."""    # 1. Clear existing (optional)
     if clear:
         db.query(UserInteraction).delete()
         db.query(HouseListing).delete()
         db.query(User).delete()
         db.commit()
+    else:
+        # Idempotency check: if not clearing and we already have 30 houses, skip
+        count = db.query(HouseListing).count()
+        if count >= 30:
+            return {"message": "Database already seeded with 30+ houses. Use ?clear=True to reset.", "houses": count}
 
     # 2. Add Houses
     locations = ["Downtown", "Suburbs", "Uptown", "Beachfront", "Mountain View", "Nellore", "Ongole"]
     houses = []
     # Generate 30 houses as requested
     for i in range(1, 31):
-        h = HouseListing(
-            title=f"Premium Property {i}" if i > 25 else f"Modern House {i}",
-            description=f"Beautiful home in {random.choice(locations)}",
-            price=random.randint(200000, 6000000), # Broadened range to up to 6M
-            location=random.choice(locations),
-            bedrooms=random.randint(1, 6),
-            bathrooms=random.randint(1, 4),
-            sqft=random.randint(1000, 5000)
-        )
-        db.add(h)
-        houses.append(h)
+        title = f"Premium Property {i}" if i > 25 else f"Modern House {i}"
+        location = random.choice(locations)
+        # Deterministic price: ensures idempotency check (Title+Loc+Price) is stable
+        price = 200000 + (i * 50000)
+        
+        # Check if exists before adding (Idempotency)
+        existing = db.query(HouseListing).filter(
+            HouseListing.title == title,
+            HouseListing.location == location,
+            HouseListing.price == price
+        ).first()
+        
+        if not existing:
+            h = HouseListing(
+                title=title,
+                description=f"Beautiful home in {location}",
+                price=price,
+                location=location,
+                bedrooms=random.randint(1, 6),
+                bathrooms=random.randint(1, 4),
+                sqft=random.randint(1000, 5000)
+            )
+            db.add(h)
+            houses.append(h)
+        else:
+            houses.append(existing)
     
     # 3. Add Users
     users = []
@@ -59,4 +78,14 @@ def seed_data(clear: bool = False, db: Session = Depends(get_db)):
             db.add(interaction)
     
     db.commit()
-    return {"message": "Database seeded successfully", "houses": len(houses), "users": len(users), "interactions": len(users) * 10}
+
+    total_houses = db.query(HouseListing).count()
+    total_users = db.query(User).count()
+    total_interactions = db.query(UserInteraction).count()
+
+    return {
+        "message": "Database seeded successfully", 
+        "houses": total_houses, 
+        "users": total_users, 
+        "interactions": total_interactions
+    }
