@@ -59,6 +59,186 @@
         "f1_score": 0.4
       },
       "promoted": false
+    },
+    {
+      "version": "v20260222_202421",
+      "path": "models\\recommender_v20260222_202421.joblib",
+      "trained_at": "2026-02-22T20:24:21.077529Z",
+      "metrics": {
+        "accuracy": 0.6,
+        "precision": 0.6667,
+        "recall": 0.4,
+        "f1_score": 0.5
+      },
+      "promoted": false
+    },
+    {
+      "version": "v20260222_203548",
+      "path": "models\\recommender_v20260222_203548.joblib",
+      "trained_at": "2026-02-22T20:35:49.032335Z",
+      "metrics": {
+        "accuracy": 0.6,
+        "precision": 0.6667,
+        "recall": 0.4,
+        "f1_score": 0.5
+      },
+      "promoted": false
+    },
+    {
+      "version": "v20260222_203806",
+      "path": "models\\recommender_v20260222_203806.joblib",
+      "trained_at": "2026-02-22T20:38:07.055613Z",
+      "metrics": {
+        "accuracy": 0.5,
+        "precision": 0.3333,
+        "recall": 0.25,
+        "f1_score": 0.2857
+      },
+      "promoted": false
+    },
+    {
+      "version": "v20260223_091318",
+      "path": "models\\recommender_v20260223_091318.joblib",
+      "trained_at": "2026-02-23T09:13:18.050597Z",
+      "metrics": {
+        "accuracy": 0.8,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0
+      },
+      "promoted": false
+    },
+    {
+      "version": "v20260223_091326",
+      "path": "models\\recommender_v20260223_091326.joblib",
+      "trained_at": "2026-02-23T09:13:27.019167Z",
+      "metrics": {
+        "accuracy": 0.8,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0
+      },
+      "promoted": false
+    },
+    {
+      "version": "v20260223_092736",
+      "path": "models\\recommender_v20260223_092736.joblib",
+      "trained_at": "2026-02-23T09:27:36.554461Z",
+      "metrics": {
+        "accuracy": 0.4,
+        "precision": 0.3333,
+        "recall": 0.2,
+        "f1_score": 0.25
+      },
+      "promoted": false
+    },
+    {
+      "version": "v20260223_183005",
+      "path": "models\\recommender_v20260223_183005.joblib",
+      "trained_at": "2026-02-23T18:30:05.327793Z",
+      "metrics": {
+        "accuracy": 0.5,
+        "precision": 0.3333,
+        "recall": 0.25,
+        "f1_score": 0.2857
+      },
+      "promoted": false
+    },
+    {
+      "version": "v20260223_183244",
+      "path": "models\\recommender_v20260223_183244.joblib",
+      "trained_at": "2026-02-23T18:32:44.529324Z",
+      "metrics": {
+        "accuracy": 0.5,
+        "precision": 0.3333,
+        "recall": 0.25,
+        "f1_score": 0.2857
+      },
+      "promoted": false
+    },
+    {
+      "version": "v20260223_183503",
+      "path": "models\\recommender_v20260223_183503.joblib",
+      "trained_at": "2026-02-23T18:35:03.972444Z",
+      "metrics": {
+        "accuracy": 0.5,
+        "precision": 0.3333,
+        "recall": 0.25,
+        "f1_score": 0.2857
+      },
+      "promoted": false
+    },
+    {
+      "version": "v20260223_183511",
+      "path": "models\\recommender_v20260223_183511.joblib",
+      "trained_at": "2026-02-23T18:35:11.439613Z",
+      "metrics": {
+        "accuracy": 0.5,
+        "precision": 0.3333,
+        "recall": 0.25,
+        "f1_score": 0.2857
+      },
+      "promoted": false
+    },
+    {
+      "version": "v20260223_183946",
+      "path": "models\\recommender_v20260223_183946.joblib",
+      "trained_at": "2026-02-23T18:39:47.009048Z",
+      "metrics": {
+        "accuracy": 0.5,
+        "precision": 0.3333,
+        "recall": 0.25,
+        "f1_score": 0.2857
+      },
+      "promoted": false
+    },
+    {
+      "version": "v20260223_184048",
+      "path": "models\\recommender_v20260223_184048.joblib",
+      "trained_at": "2026-02-23T18:40:48.199555Z",
+      "metrics": {
+        "accuracy": 0.5,
+        "precision": 0.3333,
+        "recall": 0.25,
+        "f1_score": 0.2857
+      },
+      "promoted": false
+    },
+    {
+      "version": "v20260223_184132",
+      "path": "models\\recommender_v20260223_184132.joblib",
+      "trained_at": "2026-02-23T18:41:32.574898Z",
+      "metrics": {
+        "accuracy": 0.5,
+        "precision": 0.3333,
+        "recall": 0.25,
+        "f1_score": 0.2857
+      },
+      "promoted": false
+    },
+    {
+      "version": "v20260223_184154",
+      "path": "models\\recommender_v20260223_184154.joblib",
+      "trained_at": "2026-02-23T18:41:54.445480Z",
+      "metrics": {
+        "accuracy": 0.5,
+        "precision": 0.3333,
+        "recall": 0.25,
+        "f1_score": 0.2857
+      },
+      "promoted": false
+    },
+    {
+      "version": "v20260223_184215",
+      "path": "models\\recommender_v20260223_184215.joblib",
+      "trained_at": "2026-02-23T18:42:15.332678Z",
+      "metrics": {
+        "accuracy": 0.5,
+        "precision": 0.3333,
+        "recall": 0.25,
+        "f1_score": 0.2857
+      },
+      "promoted": false
     }
   ],
   "production": "v20260222_195322"
