@@ -38,26 +38,19 @@ class Recommender:
 
     def recommend(self, user_prefs: dict, house_list: List[dict], interactions=None, limit: int = 15) -> List[dict]:
         """
-        Hybrid recommendation:
-        - Content-based: cosine similarity on scaled numeric features
-        - Collaborative: interaction-count based scoring
-        Returns top-N houses sorted by score descending.
+        Production Pipeline: 1. Strict Filter -> 2. Feature Engineer -> 3. Rank -> 4. Format
         """
         if not house_list:
+            print("[Pipeline] No input houses provided.")
             return []
         if not user_prefs:
+            print("[Pipeline] No user preferences provided.")
             return []
 
-        # --- 1. Prepare house DataFrame ---
-        df_full = pd.DataFrame(house_list)
-        # Keep only rows with required columns
-        required = ['price', 'bedrooms', 'bathrooms', 'sqft']
-        for col in required:
-            if col not in df_full.columns:
-                df_full[col] = 0
-        df_full = self._engineer(df_full)
+        print(f"\n[Pipeline] Starting recommendation for User: {user_prefs.get('user_id', 'Ad-hoc')}")
+        print(f"[Pipeline] Step 1: Filtering {len(house_list)} houses...")
 
-        # --- 2. Apply Filters (Strict) ---
+        # --- 1. Hard Filtering (Strict) ---
         min_price = user_prefs.get('min_price', 0)
         max_price = user_prefs.get('max_price', float('inf'))
         min_beds  = user_prefs.get('min_bedrooms', 0)
@@ -67,27 +60,43 @@ class Recommender:
             single_loc = user_prefs.get('preferred_location')
             pref_locs = [single_loc] if single_loc else []
         
-        pref_locs_lower = [str(loc).lower() for loc in pref_locs if loc]
+        pref_locs_lower = [str(loc).lower().strip() for loc in pref_locs if loc]
+        
+        print(f"[Filter] Criteria: Price(${min_price}-${max_price}), Beds(>={min_beds}), Locs({pref_locs})")
 
-        # Initialize mask with Price and Bedroom constraints
+        df_all = pd.DataFrame(house_list)
         mask = (
-            (df_full['price'] >= min_price) & 
-            (df_full['price'] <= max_price) & 
-            (df_full['bedrooms'] >= min_beds)
+            (df_all['price'] >= min_price) & 
+            (df_all['price'] <= max_price) & 
+            (df_all['bedrooms'] >= min_beds)
         )
         
-        # Apply Location constraint (MUST match one of the preferred locations)
         if pref_locs_lower:
-            loc_mask = df_full['location'].str.lower().apply(lambda x: any(loc in str(x).lower() for loc in pref_locs_lower))
+            # Stricter substring match: ensures "Nellore" doesn't match "Nelson" unexpectedly
+            # and handles strip/case-insensitive alignment.
+            loc_mask = df_all['location'].str.lower().apply(
+                lambda x: any(loc in str(x).lower().strip() for loc in pref_locs_lower)
+            )
             mask = mask & loc_mask
         
-        # Result MUST satisfy ALL above criteria
-        df = df_full[mask].reset_index(drop=True)
-        
+        df = df_all[mask].reset_index(drop=True)
+        print(f"[Filter] Result: {len(df)}/{len(house_list)} houses passed filters.")
+
         if df.empty:
+            print("[Pipeline] Zero matches found after strict filtering.")
             return []
 
-        # --- 3. Content-based similarity ---
+        # --- 2. Feature Engineering (Only on filtered set) ---
+        print("[Pipeline] Step 2: Running Feature Engineering...")
+        required = ['price', 'bedrooms', 'bathrooms', 'sqft']
+        for col in required:
+            if col not in df.columns:
+                df[col] = 0
+        df = self._engineer(df)
+
+        # --- 3. Hybrid Ranking ---
+        print("[Pipeline] Step 3: Generating Hybrid Scores (Content + Collaborative)...")
+        # Content-based
         df_user = self._user_vector(user_prefs)
         combined = pd.concat([df_user[NUMERIC_FEATURES], df[NUMERIC_FEATURES]], ignore_index=True)
         self.scaler.fit(combined)
@@ -95,7 +104,7 @@ class Recommender:
         houses_vec  = self.scaler.transform(df[NUMERIC_FEATURES])
         content_sim = cosine_similarity(user_vec, houses_vec)[0]
 
-        # --- 4. Collaborative filtering ---
+        # Collaborative
         collab_scores = np.zeros(len(df))
         if interactions:
             try:
@@ -114,23 +123,28 @@ class Recommender:
                         for i, row in df.iterrows():
                             collab_scores[i] = avg_inter.get(row.get('id', -1), 0)
             except Exception as e:
-                print(f"[Collab warn] {e}")
+                print(f"[Collab Warn] {e}")
 
         if collab_scores.max() > 0:
             collab_scores = collab_scores / collab_scores.max()
 
-        # --- 5. Hybrid score ---
         final_scores = (0.6 * content_sim) + (0.4 * collab_scores)
-
+        
+        # --- 4. Result Formatting & Normalization ---
+        # Ensure scores are strictly 0-1 and non-negative
+        final_scores = np.clip(final_scores, 0, 1)
+        
         df['score']          = np.round(final_scores, 4)
         df['content_match']  = np.round(content_sim, 4)
         df['collab_match']   = np.round(collab_scores, 4)
 
+        print(f"[Pipeline] Step 4: Sorting and returning top {limit} results.")
         top = df.sort_values('score', ascending=False).head(limit)
-
         results = top.to_dict(orient='records')
         for res in results:
             res['explanation'] = self._generate_explanation(user_prefs, res)
+        
+        print(f"[Pipeline] Successfully completed. Status: {len(results)} matches found.")
         return results
 
     def _generate_explanation(self, prefs: Dict, house: Dict) -> Dict:

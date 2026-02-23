@@ -29,13 +29,7 @@ def fetch_user_preferences(user_id: int):
 def fetch_user_interactions():
     """Fetches all user interaction logs from the backend API."""
     try:
-        # In a real system, this would be a specific endpoint
         response = requests.get(f"{BACKEND_API_URL}/interactions/")
-        if response.status_code == 404:
-            # Fallback for mock if endpoint doesn't exist yet
-            from .generate_data import generate_synthetic_data
-            _, _, interactions = generate_synthetic_data()
-            return interactions.to_dict(orient='records')
         response.raise_for_status()
         return response.json()
     except Exception as e:

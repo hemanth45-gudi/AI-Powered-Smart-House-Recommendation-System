@@ -116,7 +116,8 @@ async def get_recommendations_by_profile(user_id: int, limit: int = 5):
     return {
         "user_id": user_id,
         "recommendations": recommendations,
-        "engine": "Hybrid (Content + Collaborative)"
+        "engine": "Hybrid (Content + Collaborative)",
+        "message": "No houses match your criteria" if not recommendations else None
     }
 
 @app.post("/recommend", response_model=RecommendationResponse)
@@ -126,10 +127,11 @@ async def get_adhoc_recommendations(prefs: UserPreferenceRequest, limit: int = 5
     if not listings:
         return {"recommendations": [], "engine": "None", "message": "No listings available"}
         
-    # 2. Generate content-based recommendations (no interactions for ad-hoc/guest)
+    # 2. Generate content-based recommendations
     recommendations = recommender.recommend(prefs.model_dump(), listings, limit=limit)
     
     return {
         "recommendations": recommendations,
-        "engine": "Content-Based (Feature Similarity)"
+        "engine": "Content-Based (Feature Similarity)",
+        "message": "No houses match your criteria" if not recommendations else None
     }
