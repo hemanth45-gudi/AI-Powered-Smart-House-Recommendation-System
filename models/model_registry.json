@@ -239,6 +239,54 @@
         "f1_score": 0.2857
       },
       "promoted": false
+    },
+    {
+      "version": "v20260224_123853",
+      "path": "models\\recommender_v20260224_123853.joblib",
+      "trained_at": "2026-02-24T12:38:53.297375Z",
+      "metrics": {
+        "accuracy": 0.7,
+        "precision": 0.25,
+        "recall": 1.0,
+        "f1_score": 0.4
+      },
+      "promoted": false
+    },
+    {
+      "version": "v20260224_123948",
+      "path": "models\\recommender_v20260224_123948.joblib",
+      "trained_at": "2026-02-24T12:39:48.946890Z",
+      "metrics": {
+        "accuracy": 0.7,
+        "precision": 0.25,
+        "recall": 1.0,
+        "f1_score": 0.4
+      },
+      "promoted": false
+    },
+    {
+      "version": "v20260224_124048",
+      "path": "models\\recommender_v20260224_124048.joblib",
+      "trained_at": "2026-02-24T12:40:48.403521Z",
+      "metrics": {
+        "accuracy": 0.7,
+        "precision": 0.25,
+        "recall": 1.0,
+        "f1_score": 0.4
+      },
+      "promoted": false
+    },
+    {
+      "version": "v20260224_124642",
+      "path": "models\\recommender_v20260224_124642.joblib",
+      "trained_at": "2026-02-24T12:46:43.012014Z",
+      "metrics": {
+        "accuracy": 0.7,
+        "precision": 0.25,
+        "recall": 1.0,
+        "f1_score": 0.4
+      },
+      "promoted": false
     }
   ],
   "production": "v20260222_195322"

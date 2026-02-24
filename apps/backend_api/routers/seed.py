@@ -11,6 +11,7 @@ router = APIRouter(prefix="/seed", tags=["seed"])
 @router.api_route("/", methods=["GET", "POST"])
 def seed_data(clear: bool = False, db: Session = Depends(get_db)):
     """Seeds the database with houses, users, and interactions for testing."""    # 1. Clear existing (optional)
+    random.seed(42)  # Ensure deterministic data generation
     if clear:
         db.query(UserInteraction).delete()
         db.query(HouseListing).delete()

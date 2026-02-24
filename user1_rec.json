@@ -1,0 +1,57 @@
+{
+  "user_id": 1,
+  "recommendations": [
+    {
+      "id": 2,
+      "title": "Modern House 2",
+      "description": "Beautiful home in Uptown",
+      "location": "Uptown",
+      "price": 300000.0,
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "sqft": 1571,
+      "score": 0.5397,
+      "content_match": 0.8995,
+      "collab_match": 0.0,
+      "explanation": {
+        "reason": "Matches: Fits your budget, 2+ Bedrooms",
+        "top_matches": [
+          "Fits your budget",
+          "2+ Bedrooms"
+        ]
+      },
+      "embedding_id": null,
+      "created_at": "2026-02-24T12:36:20",
+      "updated_at": null,
+      "price_per_sqft": 190.96117122851686,
+      "bed_bath_ratio": 0.9523809523809523
+    },
+    {
+      "id": 6,
+      "title": "Modern House 6",
+      "description": "Beautiful home in Suburbs",
+      "location": "Suburbs",
+      "price": 500000.0,
+      "bedrooms": 6,
+      "bathrooms": 4,
+      "sqft": 1902,
+      "score": 0.2774,
+      "content_match": -0.2043,
+      "collab_match": 1.0,
+      "explanation": {
+        "reason": "Matches: Fits your budget, 6+ Bedrooms",
+        "top_matches": [
+          "Fits your budget",
+          "6+ Bedrooms"
+        ]
+      },
+      "embedding_id": null,
+      "created_at": "2026-02-24T12:36:20",
+      "updated_at": null,
+      "price_per_sqft": 262.88117770767616,
+      "bed_bath_ratio": 1.4634146341463417
+    }
+  ],
+  "engine": "Hybrid (Content + Collaborative)",
+  "message": null
+}

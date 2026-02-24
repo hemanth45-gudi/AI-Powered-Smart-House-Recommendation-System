@@ -1,0 +1,70 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\heman\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\python.exe
+cachedir: .pytest_cache
+rootdir: D:\AI-Powered-Smart-House-Recommendation-System
+plugins: anyio-4.12.1, cov-7.0.0, flask-1.3.0
+collecting ... collected 10 items
+
+apps/ml_engine/tests/test_engine.py::test_strict_filtering_price FAILED  [ 10%]
+apps/ml_engine/tests/test_engine.py::test_strict_filtering_location PASSED [ 20%]
+apps/ml_engine/tests/test_engine.py::test_strict_filtering_beds PASSED   [ 30%]
+apps/ml_engine/tests/test_engine.py::test_empty_houses_or_prefs PASSED   [ 40%]
+apps/ml_engine/tests/test_engine.py::test_strict_filtering_all PASSED    [ 50%]
+apps/ml_engine/tests/test_engine.py::test_error_handling_wrong_data_types PASSED [ 60%]
+apps/backend_api/tests/test_api.py::test_root PASSED                     [ 70%]
+apps/backend_api/tests/test_api.py::test_metrics_header FAILED           [ 80%]
+apps/backend_api/tests/test_api.py::test_error_handling_invalid_route PASSED [ 90%]
+apps/backend_api/tests/test_api.py::test_api_performance_dummy PASSED    [100%]
+
+================================== FAILURES ===================================
+_________________________ test_strict_filtering_price _________________________
+apps\ml_engine\tests\test_engine.py:20: in test_strict_filtering_price
+    assert len(results) == 1
+E   AssertionError: assert 2 == 1
+E    +  where 2 = len([{'bathrooms': 2, 'bed_bath_ratio': 1.4285714285714286, 'bedrooms': 3, 'collab_match': 0.0, ...}, {'bathrooms': 1, 'bed_bath_ratio': 1.8181818181818181, 'bedrooms': 2, 'collab_match': 0.0, ...}])
+_____________________________ test_metrics_header _____________________________
+apps\backend_api\tests\test_api.py:18: in test_metrics_header
+    assert process_time > 0.0
+E   assert 0.0 > 0.0
+============================== warnings summary ===============================
+apps\ml_engine\engine.py:5
+  D:\AI-Powered-Smart-House-Recommendation-System\apps\ml_engine\engine.py:5: DeprecationWarning: 
+  Pyarrow will become a required dependency of pandas in the next major release of pandas (pandas 3.0),
+  (to allow more performant data types, such as the Arrow string type, and better interoperability with other libraries)
+  but was not found to be installed on your system.
+  If this would cause problems for you,
+  please provide us feedback at https://github.com/pandas-dev/pandas/issues/54466
+          
+    import pandas as pd
+
+apps\backend_api\database.py:17
+  D:\AI-Powered-Smart-House-Recommendation-System\apps\backend_api\database.py:17: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    Base = declarative_base()
+
+apps\backend_api\schemas\interaction.py:14
+  D:\AI-Powered-Smart-House-Recommendation-System\apps\backend_api\schemas\interaction.py:14: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class Interaction(InteractionBase):
+
+apps\backend_api\main.py:41
+  D:\AI-Powered-Smart-House-Recommendation-System\apps\backend_api\main.py:41: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    @app.on_event("startup")
+
+C:\Users\heman\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\fastapi\applications.py:4597
+  C:\Users\heman\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\fastapi\applications.py:4597: DeprecationWarning: 
+          on_event is deprecated, use lifespan event handlers instead.
+  
+          Read more about it in the
+          [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+          
+    return self.router.on_event(event_type)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED apps/ml_engine/tests/test_engine.py::test_strict_filtering_price - Ass...
+FAILED apps/backend_api/tests/test_api.py::test_metrics_header - assert 0.0 >...
+=================== 2 failed, 8 passed, 5 warnings in 1.75s ===================

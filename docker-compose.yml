@@ -3,35 +3,63 @@ version: '3.8'
 services:
   db:
     image: postgres:13
+    restart: always
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=smarthouse
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     ports:
       - "5432:5432"
+
+  redis:
+    image: redis:6-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
     build:
       context: ./apps/backend_api
+    restart: on-failure
     ports:
       - "8000:8000"
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/smarthouse
       - ML_ENGINE_URL=http://ml_engine:8001
+      - WORKER_BROKER_URL=redis://redis:6379/0
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   ml_engine:
     build:
       context: ./apps/ml_engine
+    restart: on-failure
     ports:
       - "8001:8001"
     environment:
       - BACKEND_API_URL=http://backend:8000
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - SHAP_ENABLED=True
     volumes:
       - ./apps/ml_engine/models:/app/models
+    depends_on:
+      redis:
+        condition: service_healthy
 
 volumes:
   postgres_data:

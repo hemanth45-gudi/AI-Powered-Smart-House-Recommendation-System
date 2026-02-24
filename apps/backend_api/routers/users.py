@@ -9,6 +9,26 @@ router = APIRouter(
     tags=["users"]
 )
 
+@router.post("/", response_model=schemas.User)
+def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    from ..security import get_password_hash
+    db_user = db.query(models.User).filter(models.User.email == user.email).first()
+    if db_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    hashed_password = get_password_hash(user.password)
+    new_user = models.User(email=user.email, hashed_password=hashed_password)
+    db.add(new_user)
+    
+    try:
+        db.commit()
+        db.refresh(new_user)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail={"error": str(e)})
+        
+    return new_user
+
 @router.post("/{user_id}/preferences", response_model=schemas.UserPreference)
 def update_preferences(user_id: int, prefs: schemas.UserPreferenceCreate, db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.id == user_id).first()

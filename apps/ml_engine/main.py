@@ -1,12 +1,26 @@
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, BackgroundTasks
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, BackgroundTasks, Request
 from .engine import recommender
 from .utils import fetch_house_listings, fetch_user_preferences, fetch_user_interactions
 from .schemas import UserPreferenceRequest, RecommendationResponse
 import json
 import os
 import joblib
+import time
+import logging
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Smart House ML Recommendation Engine")
+
+@app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - start_time
+    logger.info(f"[metrics] ML API Response: {request.method} {request.url.path} - {process_time:.4f}s")
+    response.headers["X-Process-Time"] = str(process_time)
+    return response
 
 # --- WebSocket Connection Manager ---
 class ConnectionManager:

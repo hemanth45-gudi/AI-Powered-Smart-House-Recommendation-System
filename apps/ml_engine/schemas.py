@@ -12,6 +12,7 @@ class UserPreferenceRequest(BaseModel):
 class Explanation(BaseModel):
     reason: str
     top_matches: List[str]
+    shap_explainability_weights: Optional[Dict[str, float]] = None
 
 class HouseRecommendation(BaseModel):
     id: Optional[int] = None

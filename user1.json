@@ -1,0 +1,10 @@
+{
+  "min_price": 0.0,
+  "max_price": 0.0,
+  "preferred_locations": [
+    "string"
+  ],
+  "min_bedrooms": 0,
+  "id": 1,
+  "user_id": 1
+}
