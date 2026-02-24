@@ -238,7 +238,16 @@ System analytics including user activity and performance metrics.
 
 ---
 
+## Output Links 
+
+* Backend : http://localhost:8000/docs
+
+* Ml Engine : http://localhost:8001/docs
+
+---
+
 ## 👨‍💻 Author
 
 **Hemanth Gudi**
 Computer Science Student | Full Stack Developer | Machine Learning Enthusiast
+
