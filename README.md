@@ -11,11 +11,9 @@
 
 ## 📌 Project Overview
 
-The **AI-Powered Smart House Recommendation System** is a production-level machine learning application that recommends houses based on user preferences such as price range, location, and bedroom requirements.
+The **AI-Powered Smart House Recommendation System** is a production-level machine learning system that recommends houses based on user preferences such as price range, location, and bedroom requirements.
 
-The system uses a **Hybrid Recommendation Engine (Content-Based + Collaborative Filtering)** combined with strict filtering, ranking, and explainable AI to deliver personalized recommendations.
-
-This project demonstrates real-world ML system design, backend architecture, and intelligent decision systems.
+The system uses a **Hybrid Recommendation Engine (Content-Based + Collaborative Filtering)** with strict filtering, ranking, and explainable AI to deliver personalized and intelligent recommendations. It demonstrates real-world ML pipeline design, backend architecture, and scalable recommendation systems.
 
 ---
 
@@ -39,17 +37,18 @@ This project demonstrates real-world ML system design, backend architecture, and
 
 ✅ Production-ready architecture
 
+---
 
 ## 🏗 System Architecture
 
 ```
-User → FastAPI Backend → Recommendation Engine → Database → Ranked Results
+User → Mobile/Web Client → FastAPI Backend → ML Recommendation Engine → Database → Ranked Results
 ```
 
 ### Components
 
-* **User Layer** — provides preferences and requests
-* **Backend API** — processes requests and manages data
+* **User Interface** — sends preferences and requests
+* **Backend API** — processes requests and handles data
 * **ML Engine** — filters and ranks houses
 * **Database** — stores houses, users, and interactions
 * **Recommendation Output** — returns ranked results
@@ -59,25 +58,32 @@ User → FastAPI Backend → Recommendation Engine → Database → Ranked Resul
 ## 🧠 Machine Learning Pipeline
 
 1. Data collection and preprocessing
-2. Feature extraction (price, location, bedrooms, behavior)
+2. Feature extraction (price, location, bedrooms, user behavior)
 3. Content-based similarity calculation
-4. Collaborative filtering from user interactions
+4. Collaborative filtering using interaction data
 5. Hybrid score computation and ranking
-6. Explainable AI output generation
+6. Model evaluation (Precision, Recall, F1, Accuracy)
+7. Explainable AI output generation
+
+### Recommendation Algorithm
+
+* Content-based filtering → feature similarity matching
+* Collaborative filtering → behavior-based learning
+* Hybrid ranking → combined recommendation score
 
 ---
 
 ## 🔄 System Workflow
 
 ```
-User Request → Filter Houses → ML Ranking → Score Calculation → Top Recommendations
+User Request → Filter Houses → ML Ranking → Score Normalization → Top Recommendations
 ```
 
 Steps:
 
 * User provides preferences
 * System filters matching houses
-* Hybrid model ranks houses
+* ML model ranks houses
 * Top results returned with explanation
 
 ---
@@ -85,7 +91,7 @@ Steps:
 ## 📊 Performance Metrics
 
 * Average API response time: ~100–200 ms
-* Model training time: ~few seconds (depends on dataset)
+* Model training time: few seconds (dataset dependent)
 * Recommendation ranking complexity: O(n log n)
 * Scalable architecture for large datasets
 
@@ -100,6 +106,30 @@ Steps:
 
 ---
 
+## 🚀 Deployment
+
+### Run with Docker (Production Setup)
+
+```
+docker build -t house-recommendation .
+docker run -p 8000:8000 house-recommendation
+```
+
+### Local Development
+
+```
+pip install -r requirements.txt
+uvicorn apps.backend_api.main:app --reload
+```
+
+Open API Docs:
+
+```
+http://localhost:8000/docs
+```
+
+---
+
 ## ⚙️ Tech Stack
 
 * Python
@@ -107,36 +137,23 @@ Steps:
 * Scikit-learn
 * Pandas / NumPy
 * SQLite / SQL Database
-* REST API
-* Docker (optional deployment)
+* REST API Architecture
+* Docker Deployment
+* Machine Learning Pipeline
 
 ---
 
-## 🚀 How to Run
-
-### Clone Repository
+## 📂 Project Structure
 
 ```
-git clone <your-repo-url>
-cd AI-Powered-Smart-House-Recommendation-System
-```
+apps/
+ ├── backend_api/        # FastAPI backend and routes
+ ├── ml_engine/          # Recommendation engine and training
+ └── mobile_app/         # Frontend client (optional)
 
-### Install Dependencies
-
-```
-pip install -r requirements.txt
-```
-
-### Run Backend Server
-
-```
-uvicorn apps.backend_api.main:app --reload
-```
-
-Open API documentation:
-
-```
-http://localhost:8000/docs
+docs/                    # Documentation
+infra/                   # Deployment configuration
+models/                  # Saved ML models
 ```
 
 # 📸 Demo
@@ -162,23 +179,7 @@ http://localhost:8000/docs
 ![AI-Powered-Smart-House-Recommendation-System](assets/p7-project.png)
 * Shows matching features
 * Displays recommendation reason
-
-
----
-
-## 📂 Project Structure
-
-```
-apps/
- ├── backend_api/        # FastAPI backend and routes
- ├── ml_engine/          # Recommendation engine and training
- └── mobile_app/         # Frontend client (optional)
-
-docs/                    # Documentation
-infra/                   # Deployment configuration
-models/                  # Saved ML models
-```
-
+  
 ---
 
 ## 🎯 Applications
@@ -192,9 +193,9 @@ models/                  # Saved ML models
 
 ## ⚠️ Limitations
 
-* Performance depends on available data
+* Performance depends on available user data
 * Cold-start problem for new users
-* Recommendation quality improves with user interactions
+* Recommendation quality improves with more interactions
 
 ---
 
@@ -211,4 +212,3 @@ models/                  # Saved ML models
 
 **Hemanth Gudi**
 Computer Science Student | Full Stack Developer | Machine Learning Enthusiast
-
