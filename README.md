@@ -22,16 +22,23 @@ This project demonstrates real-world ML system design, backend architecture, and
 ## ⭐ Key Features
 
 ✅ Hybrid recommendation system (Content + Collaborative filtering)
+
 ✅ Strict preference-based filtering (price, location, bedrooms)
+
 ✅ Explainable AI (why each house is recommended)
+
 ✅ Real-time recommendation ranking
+
 ✅ Model training and retraining pipeline
+
 ✅ REST API backend (FastAPI)
+
 ✅ Database integration for houses and users
+
 ✅ Performance monitoring and logging
+
 ✅ Production-ready architecture
 
----
 
 ## 🏗 System Architecture
 
@@ -204,3 +211,4 @@ models/                  # Saved ML models
 
 **Hemanth Gudi**
 Computer Science Student | Full Stack Developer | Machine Learning Enthusiast
+
