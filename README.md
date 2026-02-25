@@ -134,11 +134,17 @@ docker run -p 8000:8000 house-recommendation
 pip install -r requirements.txt
 uvicorn apps.backend_api.main:app --reload
 ```
+```
+Backend : python -m uvicorn apps.backend_api.main:app --reload --port 8000
+ML Engine : python -m uvicorn apps.ml_engine.main:app --reload --port 8001
+
+```
 
 Open API Docs:
 
 ```
 http://localhost:8000/docs
+http://localhost:8001/docs
 ```
 
 ---
@@ -250,5 +256,6 @@ System analytics including user activity and performance metrics.
 
 **Hemanth Gudi**
 Computer Science Student | Full Stack Developer | Machine Learning Enthusiast
+
 
 
