@@ -58,7 +58,8 @@ def retrain_and_version() -> dict:
     # --- 1. Data ---
     pipeline = HouseDataPipeline()
     X_train, X_test, y_train, y_test = pipeline.process()
-    print(f"[Data]     Train: {X_train.shape[0]} | Test: {X_test.shape[0]}")
+    num_features = X_train.shape[1]
+    print(f"[Data]     Train: {X_train.shape[0]} | Test: {X_test.shape[0]} | Features: {num_features}")
 
     # --- 2. Train ---
     model = RandomForestClassifier(n_estimators=150, max_depth=10, random_state=42, n_jobs=-1)
@@ -73,10 +74,21 @@ def retrain_and_version() -> dict:
         "recall":    round(float(recall_score(y_test, y_pred, zero_division=0)), 4),
         "f1_score":  round(float(f1_score(y_test, y_pred, zero_division=0)), 4),
     }
-    print("\n[Metrics]")
+
+    print("\n" + "=" * 30)
+    print(" MODEL PERFORMANCE METRICS")
+    print("=" * 30)
+    print(f" Dataset Size  : {X_train.shape[0] + X_test.shape[0]} records")
+    print(f" Feature Count : {num_features} dimensions")
+    print(f" Model Accuracy: {metrics['accuracy'] * 100:.2f}%")
+    print("-" * 30)
     for k, v in metrics.items():
-        print(f"  {k:<12}: {v}")
-    print("\n" + classification_report(y_test, y_pred, zero_division=0))
+        if k != "accuracy":
+            print(f"  {k:<12}: {v}")
+    print("=" * 30)
+
+    print("\n[Detailed Classification Report]")
+    print(classification_report(y_test, y_pred, zero_division=0))
 
     # --- 4. Save versioned artifact ---
     version_tag = datetime.utcnow().strftime("v%Y%m%d_%H%M%S")

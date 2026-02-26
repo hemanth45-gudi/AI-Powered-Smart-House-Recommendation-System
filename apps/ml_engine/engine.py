@@ -158,10 +158,19 @@ class Recommender:
         for res in results:
             res['explanation'] = self._generate_explanation(user_prefs, res)
         
-        exec_time = time.time() - start_time
+        exec_time_s = time.time() - start_time
+        exec_time_ms = exec_time_s * 1000
         accuracy_proxy = df['score'].mean() if not df.empty else 0
-        logger.info(f"[metrics] Pipeline Execution Time: {exec_time:.4f}s")
-        logger.info(f"[metrics] Avg Recommendation Score (Accuracy Proxy): {accuracy_proxy:.4f}")
+
+        logger.info("-" * 30)
+        logger.info(" PERFORMANCE METRICS")
+        logger.info("-" * 30)
+        logger.info(f" Dataset Size: {len(house_list)} records")
+        logger.info(f" Features Used: {len(NUMERIC_FEATURES)} features")
+        logger.info(f" Prediction Time: {exec_time_ms:.2f} ms")
+        logger.info(f" Model Accuracy (Proxy): {accuracy_proxy:.4f}")
+        logger.info("-" * 30)
+
         logger.info(f"[Pipeline] Successfully completed. Status: {len(results)} matches found.")
         return results
 
